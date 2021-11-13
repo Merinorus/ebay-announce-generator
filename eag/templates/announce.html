@@ -1,6 +1,6 @@
 <meta name="viewport" content="width=device-width,
 initial-scale=1">
-<link rel="stylesheet" href="{{WEBSITE_PUBLIC_URL}}/css/style1.css">
+<link rel="stylesheet" href="https://merinorus.github.io/ebay-announce-generator/css/style1.css">
 <div class="main">
 <div class="colours">
 <div class="colour"></div>
@@ -11,68 +11,23 @@ initial-scale=1">
 </div>
 <div class="template">
 <div class="logo">
-{{STORE_NAME}}
+{{store_name}}
 </div>
 <div class="slogan">
-{{SLOGAN}}
+{{store_slogan}}
 </div>
 <div class="product template-container">
 <div class="gallery">
-<input id="img1" type="radio" name="img"
-checked>
-<input id="img2" type="radio" name="img">
-<input id="img3" type="radio" name="img">
-<input id="img4" type="radio" name="img">
-<input id="img5" type="radio" name="img">
-<div class="image" id="show1">
-<img src="https://i.ebayimg.com/images/g/orcAAOSwVsFhjU6x/s-l1600.jpg">
-</div>
-<div class="image" id="show2">
-<img src="https://i.ebayimg.com/images/g/MG0AAOSw~6phjU7B/s-l1600.jpg">
-</div>
-<div class="image" id="show3">
-<img src="https://i.ebayimg.com/images/g/wBkAAOSwKmZhjU7R/s-l1600.jpg">
-</div>
-<div class="image" id="show4">
-<img src="https://i.ebayimg.com/images/g/fD0AAOSwKkhhjU7d/s-l1600.jpg">
-</div>
-<div class="image" id="show5">
-<img src="https://i.ebayimg.com/images/g/plsAAOSwKKhhjU7r/s-l1600.jpg">
-</div>
+{{img_inputs}}
+{{img_div_images}}
 <div class="image-caption">
 </div>
-<label for="img1">
-<div class="thumbnail">
-<img src="https://i.ebayimg.com/images/g/orcAAOSwVsFhjU6x/s-l1600.jpg">
-</div>
-</label>
-<label for="img2">
-<div class="thumbnail">
-<img src="https://i.ebayimg.com/images/g/MG0AAOSw~6phjU7B/s-l1600.jpg">
-</div>
-</label>
-<label for="img3">
-<div class="thumbnail">
-<img src="https://i.ebayimg.com/images/g/wBkAAOSwKmZhjU7R/s-l1600.jpg">
-</div>
-</label>
-<label for="img4">
-<div class="thumbnail">
-<img src="https://i.ebayimg.com/images/g/fD0AAOSwKkhhjU7d/s-l1600.jpg">
-</div>
-</label>
-<label for="img5">
-<div class="thumbnail">
-<img src="https://i.ebayimg.com/images/g/plsAAOSwKKhhjU7r/s-l1600.jpg">
-</div>
-</label>
+{{img_labels}}
 </div>
 <div class="info">
-<h1>{{ANNOUNCE_TITLE}}</h1>
+<h1>{{title}}</h1>
 <div id="product-description">
-<p>Perfect working condition. Any question? Contact me!</p>
-<p>--</p>
-<p>Marche parfaitement. N'h&eacute;sitez pas &agrave; me contacter si vous avez des questions !</p>
+{{description}}
 </div>
 </div>
 </div>
@@ -127,8 +82,8 @@ Terms
 </div>
 <div class="payment" style="padding-bottom: 3em">
 <h2>Accepted payment methods</h2>
-<img src="https://merinorus.github.io/ebay-announce-template/img/sepa.png" alt="SEPA">
-<img src="https://merinorus.github.io/ebay-announce-template/img/paypal.svg" alt="PayPal">
+<img src="https://merinorus.github.io/ebay-announce-generator/img/sepa.png" alt="SEPA">
+<img src="https://merinorus.github.io/ebay-announce-generator/img/paypal.svg" alt="PayPal">
 </div>
 </div>
 </div>

@@ -1,0 +1,9 @@
+services:
+  ebay_announce_generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: "no"
+    container_name: eag
+    command: python -m eag
+#    command: ls -al

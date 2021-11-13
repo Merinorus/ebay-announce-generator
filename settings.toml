@@ -1,3 +1,8 @@
+ebay_website = "ebay.fr"
 ebay_user = "Nox_Hamlet"
+
+repo_public_url = "https://github.com/Merinorus/ebay-announce-generator"
+
+# Related to announce content
 store_name = "😺 Nox hamlet's store"
 store_slogan = "🍷 🥖 🧀  French seller, slow shipping! :>"

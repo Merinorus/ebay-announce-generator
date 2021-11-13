@@ -1,9 +1,19 @@
+import os
+
 import requests as requests
 
-from ebay_announce_generator.utils.logging import logger
+from eag.constants import ROOT_DIR
+from eag.exceptions import AnnounceAlreadyProcessedException, UnknownTemplateException
+from eag.utils.logging import logger
 from jinja2 import Template
 from bs4 import BeautifulSoup
-from ebay_announce_generator.config import settings
+from eag.config import settings
+
+
+def get_announce_template():
+    with open(os.path.join(ROOT_DIR, "templates/announce.html"), 'r', encoding='utf-8') as f:
+        template = f.read()
+        return template
 
 
 def big_image_url(ebay_image_url: str):
@@ -16,11 +26,12 @@ def create_announce(item_url: str):
     page = requests.get(item_url)
     soup = BeautifulSoup(page.content, 'html.parser')
     # If this announce is already set, we should not process it
-    description_iframe_url = soup.find('iframe', attrs={'id': 'desc_ifr'})
-    description_iframe_page = requests.get(description_iframe_url.attrs['src'])
+    description_iframe = soup.find('iframe', attrs={'id': 'desc_ifr'})
+    description_iframe_url = description_iframe.attrs['src']
+    description_iframe_page = requests.get(description_iframe_url)
     description_iframe_soup = BeautifulSoup(description_iframe_page.content, 'html.parser')
     if description_iframe_soup.find('div', attrs={'id': 'product-description'}) is not None:
-        raise ValueError("This announce has already been processed")
+        raise AnnounceAlreadyProcessedException("This announce has already been processed")
 
     # Remove <span> content to get the right announce title
     # "<span class="g-hdn">Details about </span>Announce Title" becomes "Announce Title"
@@ -45,20 +56,73 @@ def create_announce(item_url: str):
     logger.debug("Images for this announce: " + str(image_urls))
 
     # Extract text description
-    # Case 1 : Description already has a known template: do not touch
+    # Case 1 : Description has an unknown template (eg: contains images)
+    # Remember: Alread processed announces contain images
+    # but they are already excluded at the beginning of this function call.
+    if description_iframe_soup.find_all('img'):
+        raise UnknownTemplateException(
+            f"Not processed announces should not include images."
+            f"Image found in article description. Please check your announce: {item_url}")
     # Case 2 : Description is raw text only: this will be our announce description
-    # Case 3 : Description has an unknown template: ignore this announce
-    # TODO Extract data: images & URLs, Title, Text description inside the announce
+    else:
+        logger.debug(f"description iframe url: {description_iframe_url}")
+        content = description_iframe_soup.find('div', attrs={'id': 'ds_div'})
+        # Remove excess new lines at the beginning and at the end
+        announce_description = content.get_text(separator="\n").rstrip().lstrip()
+        logger.trace(announce_description)
     # TODO Create announce from template: filename, title, text description, photos
+
+    # Now that we have all the required information, let's create the announce
+    # Load the template
+    announce_template = Template(get_announce_template())
+
+    # Prepare all the template parameters
+    store_name = settings.store_name
+    store_slogan = settings.store_slogan
+    # Images
+    number_of_images = len(image_urls)
+    img_inputs = []
+    img_div_images = []
+    img_labels = []
+    for i in range(number_of_images):
+        # inputs
+        img_index = i + 1
+        if img_index == 1:
+            checked = "checked"
+        else:
+            checked = ""
+        img_input = f'<input id="img{img_index}" type="radio" name="img" {checked}>\n'
+        img_inputs.append(img_input)
+        # images
+        img_div_image = f'<div class="image" id="show{img_index}">\n<img src="{image_urls[i]}">\n</div>\n'
+        img_div_images.append(img_div_image)
+        # thumbmails
+        img_label = f'<label for="img{img_index}">\n<div class="thumbnail">\n<img src="{image_urls[i]}">\n</div></label>\n'
+        img_labels.append(img_label)
+    # Concatenate each table in one stirng. Performant stirng concatenation
+    img_inputs = ''.join(img_inputs)
+    img_div_images = ''.join(img_div_images)
+    img_labels = ''.join(img_labels)
+
+    # Announce description
+    announce_description = announce_description.replace("\n", "\n<br/>")
+    logger.debug(f"announce_description:\n{announce_description}")
+    # Generate the final HTML announce
+    announce_html = announce_template.render(store_name=store_name, store_slogan=store_slogan, img_inputs=img_inputs, img_div_images=img_div_images, img_labels=img_labels, title=announce_title, description=announce_description)
+    logger.debug(announce_html)
 
 
 def main():
     with logger.catch():
-        store_url = f"https://www.ebay.fr/sch/m.html?_ssn={settings.ebay_user}&_pppn=r1&scp=ce0"
+        store_url = f"https://www.{settings.ebay_website}/sch/m.html?_ssn={settings.ebay_user}&_pppn=r1&scp=ce0"
         logger.debug("Looking for items in store: " + str(store_url))
         page = requests.get(store_url)
         soup = BeautifulSoup(page.content, 'html.parser')
         store_items_div = soup.find('div', attrs={'id': 'Results'})
         item_links = store_items_div.find_all('a', attrs={'class': 'vip'})
         for item_link in item_links:
-            create_announce(item_link['href'])
+            url = item_link['href']
+            try:
+                create_announce(url)
+            except AnnounceAlreadyProcessedException:
+                logger.info(f"Announce already created for url {url}. Ignoring it.")
