@@ -21,7 +21,7 @@ def get_announce_template():
 def archive_old_announces():
     file_names = os.listdir(ANNOUNCES_PATH)
     for file_name in file_names:
-        shutil.move(os.path.join(ANNOUNCES_PATH, file_name), OLD_ANNOUNCES_PATH)
+        shutil.move(os.path.join(ANNOUNCES_PATH, file_name), os.path.join(OLD_ANNOUNCES_PATH, file_name))
 
 
 """

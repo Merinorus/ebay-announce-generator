@@ -140,3 +140,7 @@ cython_debug/
 .idea
 # Ignore dynaconf secret files
 .secrets.*
+
+# Default generated announce folders
+announces
+announces_old
