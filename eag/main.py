@@ -1,8 +1,10 @@
 import os
+import shutil
+from pathlib import Path
 
 import requests as requests
 
-from eag.constants import ROOT_DIR
+from eag.constants import APP_ROOT_DIR, PROJECT_ROOT_DIR, ANNOUNCES_PATH, OLD_ANNOUNCES_PATH
 from eag.exceptions import AnnounceAlreadyProcessedException, UnknownTemplateException
 from eag.utils.logging import logger
 from jinja2 import Template
@@ -11,9 +13,32 @@ from eag.config import settings
 
 
 def get_announce_template():
-    with open(os.path.join(ROOT_DIR, "templates/announce.html"), 'r', encoding='utf-8') as f:
+    with open(os.path.join(APP_ROOT_DIR, "templates/announce.html"), 'r', encoding='utf-8') as f:
         template = f.read()
         return template
+
+
+def archive_old_announces():
+    file_names = os.listdir(ANNOUNCES_PATH)
+    for file_name in file_names:
+        shutil.move(os.path.join(ANNOUNCES_PATH, file_name), OLD_ANNOUNCES_PATH)
+
+
+"""
+Create announce folders if not already created
+"""
+
+
+def create_announce_folders():
+    Path(ANNOUNCES_PATH).mkdir(parents=True, exist_ok=True)
+    Path(OLD_ANNOUNCES_PATH).mkdir(parents=True, exist_ok=True)
+
+
+def write_announce(title: str, content: str):
+    output_path = os.path.join(ANNOUNCES_PATH, title + settings.announces_file_extension)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        logger.debug(f"Writing announce to {output_path}")
+        f.write(content)
 
 
 def big_image_url(ebay_image_url: str):
@@ -94,10 +119,12 @@ def create_announce(item_url: str):
         img_input = f'<input id="img{img_index}" type="radio" name="img" {checked}>\n'
         img_inputs.append(img_input)
         # images
-        img_div_image = f'<div class="image" id="show{img_index}">\n<img src="{image_urls[i]}">\n</div>\n'
+        img_div_image = f'<div class="image" id="show{img_index}">\n<img src="' \
+                        f'{image_urls[i]}">\n</div>\n'
         img_div_images.append(img_div_image)
         # thumbmails
-        img_label = f'<label for="img{img_index}">\n<div class="thumbnail">\n<img src="{image_urls[i]}">\n</div></label>\n'
+        img_label = f'<label for="img{img_index}">\n<div class="thumbnail">\n<img src="' \
+                    f'{image_urls[i]}">\n</div></label>\n '
         img_labels.append(img_label)
     # Concatenate each table in one stirng. Performant stirng concatenation
     img_inputs = ''.join(img_inputs)
@@ -108,13 +135,22 @@ def create_announce(item_url: str):
     announce_description = announce_description.replace("\n", "\n<br/>")
     logger.debug(f"announce_description:\n{announce_description}")
     # Generate the final HTML announce
-    announce_html = announce_template.render(store_name=store_name, store_slogan=store_slogan, img_inputs=img_inputs, img_div_images=img_div_images, img_labels=img_labels, title=announce_title, description=announce_description)
-    logger.debug(announce_html)
+    announce_html = announce_template.render(store_name=store_name, store_slogan=store_slogan,
+                                             img_inputs=img_inputs, img_div_images=img_div_images,
+                                             img_labels=img_labels, title=announce_title,
+                                             description=announce_description)
+    logger.trace(announce_html)
+    write_announce(announce_title, announce_html)
 
 
 def main():
     with logger.catch():
-        store_url = f"https://www.{settings.ebay_website}/sch/m.html?_ssn={settings.ebay_user}&_pppn=r1&scp=ce0"
+        logger.info("eBay Announce Generator started!")
+        create_announce_folders()
+        logger.info(f"Moving announces to archive folder: {OLD_ANNOUNCES_PATH}")
+        archive_old_announces()
+        store_url = f"https://www.{settings.ebay_website}/sch/m.html?_ssn=" \
+                    f"{settings.ebay_user}&_pppn=r1&scp=ce0"
         logger.debug("Looking for items in store: " + str(store_url))
         page = requests.get(store_url)
         soup = BeautifulSoup(page.content, 'html.parser')

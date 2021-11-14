@@ -6,3 +6,11 @@ repo_public_url = "https://github.com/Merinorus/ebay-announce-generator"
 # Related to announce content
 store_name = "😺 Nox hamlet's store"
 store_slogan = "🍷 🥖 🧀  French seller, slow shipping! :>"
+
+# Where to write generated announces
+announces_relative_path = "announces"
+# When running the app again, old announces will be archived there in case you need them
+old_announces_relative_path = "announces_old"
+
+# Can be changed to HTML or whatever
+announces_file_extension = ".txt"
