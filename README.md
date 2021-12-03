@@ -48,3 +48,7 @@ source venv/Scripts/activate
 python3 -m pip install -r requirements.txt
 python3 -m eag
 ```
+
+## Credits
+
+[@joshuamcewen](https://github.com/joshuamcewen) wrote the original HTML and CSS template and allowed me to publish it to open source. He sells other eBay templates as well. Thank you!
