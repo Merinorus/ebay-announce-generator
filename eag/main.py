@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 from pathlib import Path
 
@@ -35,7 +36,13 @@ def create_announce_folders():
 
 
 def write_announce(title: str, content: str):
-    output_path = os.path.join(ANNOUNCES_PATH, title + settings.announces_file_extension)
+    # regex = re.compile('[^a-zA-Z]')
+    # #First parameter is the replacement, second parameter is your input string
+    # regex.sub('', 'ab3d*E')
+    # #Out: 'abdE'
+    regex = re.compile('[^0-9A-zÀ-ú $£€]')
+    parsed_title = regex.sub('', title)
+    output_path = os.path.join(ANNOUNCES_PATH, parsed_title + settings.announces_file_extension)
     with open(output_path, 'w', encoding='utf-8') as f:
         logger.debug(f"Writing announce to {output_path}")
         f.write(content)
